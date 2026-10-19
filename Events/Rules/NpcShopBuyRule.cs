@@ -14,6 +14,8 @@ public sealed class NpcShopBuyRule : IInferenceRule
         if (diff.Id.Kind != WalletKind.Self) return false;
         if (diff.Delta >= 0) return false;
         if (!ShopAddons.Any(ctx.OpenAddons.Contains)) return false;
+        // A letter seen later than this rule's own window is the fresher signal.
+        if (MailRule.IsFresherSignal(diff, ctx, ShopAddons)) return false;
 
         ev = new GilEvent(
             Timestamp: diff.At,

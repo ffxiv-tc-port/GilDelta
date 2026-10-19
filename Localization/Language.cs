@@ -8,4 +8,5 @@ public enum Language
     French,
     SimplifiedChinese,
     Korean,
+    ChineseTraditional,
 }

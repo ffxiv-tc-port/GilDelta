@@ -16,6 +16,8 @@ public sealed class MinimalRenderer : IWidgetRenderer
         ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextPrimary);
         ImGui.Text(FormatGil(ctx.Total));
         ImGui.PopStyleColor();
+        // Before SameLine: the delta drawn next would otherwise be ImGui's "last item".
+        TotalHotspot.Offer(ctx);
         ImGui.SameLine();
 
         var deltaColor = ctx.TodayDelta >= 0 ? ctx.Theme.PositiveDelta : ctx.Theme.NegativeDelta;

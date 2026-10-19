@@ -7,6 +7,10 @@ namespace GilDelta.Tests.Events;
 
 public class InferrerTests
 {
+    private static readonly DateTimeOffset T0 = DateTimeOffset.UnixEpoch;
+
+    private static WalletDiff Diff() => new(new WalletId(WalletKind.Self, ""), 0, 5, T0);
+
     [Fact]
     public void Falls_back_to_Misc_when_no_rule_matches()
     {
@@ -71,6 +75,75 @@ public class InferrerTests
         Assert.Contains("MiscRule", ev.Note);
     }
 
+    [Fact]
+    public void Throwing_rule_is_reported_once_and_still_lands_in_Misc()
+    {
+        var log = new RecordingLog();
+        var inferrer = new Inferrer(
+            new IInferenceRule[] { new ThrowingRule(), new MiscRule() }, log.Record);
+
+        var ev = inferrer.Classify(Diff(), GameContext.Empty(T0));
+
+        Assert.Equal(GilEventCategory.Misc, ev.Category);
+        Assert.Equal(1, log.Count);
+        Assert.Contains("ThrowingRule", log.LastMessage);
+        Assert.Contains("rule blew up", log.LastMessage);
+        Assert.IsType<InvalidOperationException>(log.LastException);
+    }
+
+    [Fact]
+    public void A_rule_that_keeps_throwing_is_reported_only_once()
+    {
+        var log = new RecordingLog();
+        var inferrer = new Inferrer(
+            new IInferenceRule[] { new ThrowingRule(), new MiscRule() }, log.Record);
+
+        inferrer.Classify(Diff(), GameContext.Empty(T0));
+        inferrer.Classify(Diff(), GameContext.Empty(T0));
+
+        Assert.Equal(1, log.Count);
+    }
+
+    [Fact]
+    public void Each_throwing_rule_type_gets_its_own_line()
+    {
+        var log = new RecordingLog();
+        var inferrer = new Inferrer(
+            new IInferenceRule[] { new ThrowingRule(), new AlsoThrowingRule(), new MiscRule() },
+            log.Record);
+
+        var ev = inferrer.Classify(Diff(), GameContext.Empty(T0));
+
+        Assert.Equal(GilEventCategory.Misc, ev.Category);
+        Assert.Equal(2, log.Count);
+    }
+
+    [Fact]
+    public void A_chain_that_never_throws_logs_nothing()
+    {
+        var log = new RecordingLog();
+        var inferrer = new Inferrer(new IInferenceRule[] { new MiscRule() }, log.Record);
+
+        var ev = inferrer.Classify(Diff(), GameContext.Empty(T0));
+
+        Assert.Equal(GilEventCategory.Misc, ev.Category);
+        Assert.Equal(0, log.Count);
+    }
+
+    private sealed class RecordingLog
+    {
+        public int Count { get; private set; }
+        public string LastMessage { get; private set; } = "";
+        public Exception? LastException { get; private set; }
+
+        public void Record(Exception ex, string message)
+        {
+            Count++;
+            LastMessage = message;
+            LastException = ex;
+        }
+    }
+
     private sealed class FakeRule(GilEventCategory category) : IInferenceRule
     {
         public bool TryClassify(WalletDiff diff, GameContext ctx, [NotNullWhen(true)] out GilEvent? ev)
@@ -93,5 +166,11 @@ public class InferrerTests
     {
         public bool TryClassify(WalletDiff diff, GameContext ctx, [NotNullWhen(true)] out GilEvent? ev)
             => throw new InvalidOperationException("rule blew up");
+    }
+
+    private sealed class AlsoThrowingRule : IInferenceRule
+    {
+        public bool TryClassify(WalletDiff diff, GameContext ctx, [NotNullWhen(true)] out GilEvent? ev)
+            => throw new NotSupportedException("other rule blew up");
     }
 }

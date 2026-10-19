@@ -1,11 +1,10 @@
 {
   "Author": "yagi2",
   "Name": "GilDelta",
-  "Punchline": "Track gil flow across self, retainers, and FC chest.",
-  "Description": "An always-on gil tracker for FFXIV. Watches your own gil, every retainer, and the FC chest, classifies each change (submarine return, retainer sale, NPC purchase, marketboard buy, repair, teleport, etc.), and surfaces the flow through a configurable widget (4 density modes) and a dashboard (timeline / chart / breakdown / heatmap). Read-only — never writes back to game state. Six-language UI (EN/JA/DE/FR/ZH/KO).",
+  "Punchline": "追蹤自己、僱員與公會儲物櫃的金幣流向。",
+  "Description": "常駐金幣流水追蹤插件。監控自己的金幣、每位僱員與公會儲物櫃的變化，自動分類每一筆進出（潛水艇返回、僱員銷售、NPC購買、市場購買、修理、傳送等），透過可自訂的小工具（4 種顯示密度）與四頁儀表板（時間軸／圖表／明細／熱力圖）呈現。唯讀——絕不寫回遊戲狀態。七語言介面（英／日／德／法／簡中／韓／繁中）。",
   "ApplicableVersion": "any",
   "Tags": ["gil", "tracker", "wealth", "retainer", "fc", "submarine"],
-  "RepoUrl": "https://github.com/yagi2/GilDelta",
-  "IconUrl": "https://raw.githubusercontent.com/yagi2/GilDelta/main/images/icon.png",
-  "Changelog": "0.1.0.0 — Initial release."
+  "RepoUrl": "https://github.com/ffxiv-tc-port/GilDelta",
+  "Changelog": ""
 }

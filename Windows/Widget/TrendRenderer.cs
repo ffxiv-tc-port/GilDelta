@@ -12,7 +12,7 @@ public sealed class TrendRenderer : IWidgetRenderer
     public void Draw(WidgetContext ctx)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextMuted);
-        ImGui.TextUnformatted(Strings.TotalWealth.ToUpperInvariant());
+        ImGui.TextUnformatted(Strings.TotalWealthUpper);
         ImGui.PopStyleColor();
 
         ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextPrimary);
@@ -20,6 +20,7 @@ public sealed class TrendRenderer : IWidgetRenderer
         ImGui.TextUnformatted($"{ctx.Total:N0}");
         ImGui.SetWindowFontScale(1.0f);
         ImGui.PopStyleColor();
+        TotalHotspot.Offer(ctx);
 
         var spark = BuildSparkline(ctx);
         if (spark.Length > 1)
@@ -36,10 +37,12 @@ public sealed class TrendRenderer : IWidgetRenderer
 
     private static float[] BuildSparkline(WidgetContext ctx)
     {
-        var since = ctx.Now.AddHours(-24);
+        // This frame's clock, not ctx.Now: the context can be up to a minute old.
+        var now = DateTimeOffset.Now;
+        var since = now.AddHours(-24);
         var hours = ctx.RecentEvents
             .Where(e => e.Timestamp >= since)
-            .GroupBy(e => (int)Math.Floor((ctx.Now - e.Timestamp).TotalHours))
+            .GroupBy(e => (int)Math.Floor((now - e.Timestamp).TotalHours))
             .OrderBy(g => g.Key)
             .Select(g => (float)g.Sum(e => e.Amount))
             .ToArray();

@@ -78,4 +78,35 @@ public class EventLogTests : IDisposable
 
         Assert.Empty(log.All);
     }
+
+    [Fact]
+    public void Version_moves_on_every_change_and_only_on_a_change()
+    {
+        // The widget and the dashboard rebuild what they show only when this moves, so a
+        // change that does not bump it is a change that never reaches the screen.
+        var log = new EventLog();
+        var t0 = DateTimeOffset.Parse("2026-05-05T00:00:00+09:00");
+        var ev = E(t0, 1);
+
+        var v0 = log.Version;
+        log.Add(ev);
+        var v1 = log.Version;
+        Assert.True(v1 > v0);
+
+        Assert.True(log.Replace(ev, ev with { Suspect = true }));
+        var v2 = log.Version;
+        Assert.True(v2 > v1);
+
+        // Not in the log any more, and nothing older than t0: neither call changes anything.
+        Assert.False(log.Replace(ev, ev with { Amount = 5 }));
+        Assert.Equal(0, log.Prune(0, t0));
+        Assert.Equal(v2, log.Version);
+
+        Assert.Equal(1, log.Prune(0, t0.AddSeconds(1)));
+        var v3 = log.Version;
+        Assert.True(v3 > v2);
+
+        log.Clear();
+        Assert.True(log.Version > v3);
+    }
 }

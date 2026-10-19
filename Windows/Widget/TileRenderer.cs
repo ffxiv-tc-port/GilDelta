@@ -10,7 +10,7 @@ public sealed class TileRenderer : IWidgetRenderer
     public void Draw(WidgetContext ctx)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextMuted);
-        ImGui.TextUnformatted(Strings.TotalWealth.ToUpperInvariant());
+        ImGui.TextUnformatted(Strings.TotalWealthUpper);
         ImGui.PopStyleColor();
 
         ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextPrimary);
@@ -18,13 +18,14 @@ public sealed class TileRenderer : IWidgetRenderer
         ImGui.TextUnformatted($"{ctx.Total:N0}");
         ImGui.SetWindowFontScale(1.0f);
         ImGui.PopStyleColor();
+        TotalHotspot.Offer(ctx);
 
         if (ImGui.BeginTable("##tiles", 3, ImGuiTableFlags.SizingStretchSame | ImGuiTableFlags.NoBordersInBody))
         {
             ImGui.TableNextRow();
-            DrawTile("today",  ctx.TodayDelta, ctx);
-            DrawTile("week",   ctx.WeekDelta,  ctx);
-            DrawTile("month",  ctx.MonthDelta, ctx);
+            DrawTile(Strings.Today,    ctx.TodayDelta, ctx);
+            DrawTile(Strings.TileWeek, ctx.WeekDelta,  ctx);
+            DrawTile(Strings.TileMonth, ctx.MonthDelta, ctx);
             ImGui.EndTable();
         }
     }

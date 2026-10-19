@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+<Project Sdk="Dalamud.NET.Sdk/13.0.0">
   <PropertyGroup>
-    <Version>0.1.0.0</Version>
+    <BuildNumberFile>$(MSBuildProjectDirectory)\BuildNumber.txt</BuildNumberFile>
+    <_PreviousBuildNumber Condition="Exists('$(BuildNumberFile)')">$([System.IO.File]::ReadAllText('$(BuildNumberFile)').Trim())</_PreviousBuildNumber>
+    <_PreviousBuildNumber Condition="'$(_PreviousBuildNumber)' == ''">0</_PreviousBuildNumber>
+    <BuildNumber>$([MSBuild]::Add($(_PreviousBuildNumber), 1))</BuildNumber>
+    <VersionPrefix>7.20.0</VersionPrefix>
+    <Version>$(VersionPrefix).$(BuildNumber)</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
     <Description>Track gil flow across self, retainers, and FC chest.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- SDK 15 defaults to bin/x64/Release/; pin the historical bin/Release/ layout
-         so Dev Plugin Locations and the GHA release workflow keep working. -->
+    <!-- Pin the bin/Release/ layout explicitly so a .sln build (Platform=x64) and a
+         direct .csproj build (Platform=AnyCPU) land in the same place; CI builds the
+         csproj directly and the release workflow paths assume bin/Release/. -->
     <PlatformTarget>x64</PlatformTarget>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -24,7 +32,10 @@
       <Link>images\icon.png</Link>
     </None>
   </ItemGroup>
-  <!-- DalamudPackager 15 (DefaultDalamudPackagerRelease target) stages files
+  <Target Name="PersistBuildNumber" AfterTargets="Build">
+    <WriteLinesToFile File="$(BuildNumberFile)" Lines="$(BuildNumber)" Overwrite="true" />
+  </Target>
+  <!-- DalamudPackager 13 (DefaultDalamudPackagerRelease target) stages files
        into bin/Release/GilDelta/, zips them into latest.zip, and cleans up
        the loose copies — including GilDelta.dll itself. That breaks Dalamud
        Dev Plugin Locations, which expect a DLL on disk. Re-extract the zip

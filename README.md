@@ -1,78 +1,103 @@
 # GilDelta
 
-Dalamud plugin for FFXIV that tracks your gil flow across **your own wallet, every retainer, and the FC chest**. Each change is auto-classified (submarine return, retainer sale, NPC purchase, marketboard buy, repair, …) and surfaced through a configurable always-on widget plus a four-tab dashboard.
+[GilDelta](https://github.com/yagi2/GilDelta) 的台服移植版。追蹤**自己的錢包、每位僱員與公會儲物櫃**的金幣流向，
+每一筆變動自動分類，用常駐小工具與儀表板呈現。
 
-Read-only — never writes back to game state.
+唯讀——絕不寫回遊戲狀態。
 
 <p align="center"><img src="images/icon.png" alt="GilDelta icon" width="160"></p>
 
-## Install
+## 功能
 
-In-game, open Dalamud settings (`/xlsettings`) → **Experimental → Custom Plugin Repositories**, then add:
+- **自動分類每一筆金幣變動**：依當下開著（或剛關掉）的視窗判斷，分成潛水艇返回、公會儲物櫃存入、
+  僱員銷售、僱員提款、僱員存款、NPC購買、NPC出售、市場購買、修理、傳送、郵件收款、郵件寄出、
+  角色間轉帳，判斷不出來的歸到「其他」。
+- **常駐小工具**，4 種顯示密度：簡約（單行）、精簡（預設）、趨勢（附走勢圖）、方塊（今天／本週／本月）。
+  點一下總資產開啟每日結算。
+- **儀表板六個分頁**：
+  - 時間軸：事件列表（新的在上），每一筆可以單獨「排除」，不列入任何統計，按「復原」就回來。
+  - 圖表：總資產走勢與每日淨額；區間可選自動或 7／30／90 天，沒有紀錄的日子畫成斜線而不是 0。
+  - 明細：依分類統計今天／7 天／30 天／全部。
+  - 熱力圖：12 週 × 7 天，分得出「那天沒有紀錄」和「那天剛好沒賺沒賠」。
+  - 每日結算：見下方。
+  - 餘額明細：自己、每位僱員、每個公會儲物櫃各有多少；點「餘額」欄標題可排序，可隱藏餘額為 0 的錢包。
+- **點開數字看明細**：儀表板上的每一天、每一根長條、每一個分類都可以點開，列出是哪幾筆紀錄加出來的。
+- **別的插件可以告訴它這筆錢是什麼**：IPC 端點 `GilDelta.Hint`；AutoRetainer、Marketbuddy、TCToolbox 會用它回報自己造成的金幣變動。
+- 介面語言可跟隨遊戲語言自動偵測，或在設定手動指定。
 
-```
-https://raw.githubusercontent.com/yagi2/dalamud-plugins/main/repo.json
-```
+### 多角色（整個帳號）
 
-Save, then open the plugin installer (`/xlplugins`) and search for **GilDelta**.
+金幣紀錄以**角色**為單位保存，同一個帳號底下的每個角色各有一份
+`events/<contentId>.jsonl`，互不覆蓋。
 
-> The URL above is yagi2's shared plugin index — every plugin under `yagi2/dalamud-plugins` appears in it, so adding it once is enough for any future plugins as well.
+- **儀表板左上角有角色選單**：預設是「跟隨目前角色」，
+  另有「全部角色」以及每一個曾經記錄過的角色可選。各分頁與統計都會跟著切換；
+  選「全部角色」時，時間軸會多一欄顯示該筆屬於哪個角色。
+- **切換角色不會產生假紀錄**：登出／換角時錢包基準會重設，換角前後的金幣差額
+  不會被記成一筆巨額收支。
+- **角色間轉帳**：同一帳號的另一個角色在時間窗內有金額相同、方向相反、而且同樣查不出來源的變動時，
+  兩筆都標成「角色間轉帳」，留在時間軸上但不計入每日結算（設定→「資料」可關閉或調整時間窗）。
+- **整個帳號的總資產**：遊戲只讀得到目前登入角色的錢包，所以帳號合計是把
+  「每個角色最後一次讀到的數字」相加；沒有登入的角色沿用上次遊玩時的數字，
+  滑鼠移到角色選單旁的 `(?)` 可看最舊的資料時間。
+  小工具預設只顯示目前角色，可在設定的「小工具」分頁勾選「小工具顯示整個帳號合計」。
+- **公會儲物櫃**以公會名稱為鍵，同一個公會的多個角色只會計算一次（取最新的一筆）；
+  儲物櫃的**變動**則記在當時登入的那個角色底下。
+- **舊紀錄怎麼歸屬**：先前寫入 `events/<contentId>.jsonl` 的紀錄會歸給該檔名對應的
+  角色（檔名本身就是當初記下的角色，不是猜的）；只有 `events/0.jsonl`
+  （尚未載入角色時寫下的）會歸到「未知角色」，不會硬塞給目前登入的角色。
 
-## Features
+### 每日結算
 
-- **Per-character event log.** All gil deltas land in a JSONL at `%AppData%\XIVLauncher\pluginConfigs\GilDelta\events\<contentId>.jsonl`. Every event records `category`, `wallet`, `amount`, `note` (rule name + reason), and `ts` with local timezone offset.
-- **Always-on widget**, four densities — Minimal (one-line pill), Compact (default), Trend (compact + sparkline), Tile (today / week / month grid).
-- **Dashboard** with four tabs:
-  - *Timeline* — reverse-chronological event list with hoverable rule notes.
-  - *Chart* — running wealth line + daily-net histogram for the last 30 days.
-  - *Breakdown* — net by category for today / 7d / 30d / all.
-  - *Heatmap* — 12-week × 7-day grid colored by daily net.
-- **Eight inference rules** classifying retainer transfers, submarine returns, NPC shop buy/sell, marketboard buy, retainer sales, and repair. Anything that doesn't match falls through to `Misc`.
-- **Six-language UI** — English, 日本語, Deutsch, Français, 简体中文, 한국어.
-- **Diagnostic logging** — every classified event gets a one-line `IPluginLog.Information` breadcrumb so misclassifications are debuggable from `/xllog`.
+儀表板的「每日結算」分頁，每個本地日一列：當日淨額、事件數、期初與期末總資產，
+滑鼠移到列上可看當天的分類小計。落地在 `daily/<contentId>.jsonl`，一天一行。
 
-## Slash commands
+- **一天以「事件當下記下的時區位移」為準**（紀錄裡的 `+08:00`），所以遊戲開著跨過午夜時，
+  00:00 之後的金幣變動會自動記到新的一天，不必等程式察覺日期換了。
+- **期初／期末是「當天第一次／最後一次真的讀到錢包」的數字**；那一天完全沒讀到就顯示
+  `?`，不會拿 0 充數。選「全部角色」時期初／期末一律是 `?`——每個角色是在不同時間讀到的，
+  相加會得到一個從來不存在的數字。
+- **結算會比明細活得久**：保留天數把舊的 `events/*.jsonl` 清掉之後，每日結算的數字仍在。
 
-| Command | Action |
-|---|---|
-| `/gildelta` | Toggle the dashboard |
-| `/gildelta config` | Toggle the settings window |
-| `/gd` | Alias for `/gildelta` |
+### 公會儲物櫃可以排除
 
-## Settings
+設定 →「一般」有「統計排除公會儲物櫃」，**預設關閉**。
 
-In `/gildelta config`:
+打開之後，總資產、圖表、明細與每日結算都不再算入公會儲物櫃。
+會想關掉它有兩個理由：儲物櫃是公會共有的錢；而且遊戲只有在你人在儲物櫃旁邊時才回報金額。
+這次登入還沒讀到儲物櫃餘額之前會顯示 `?`，不會當成 0。
 
-- **General** — language, theme.
-- **Widget** — show/hide, density, hide-in-cutscene, hide-in-duty, lock position, reset position.
-- **Dashboard** — default tab.
-- **Data** — retention days (`0` = forever).
+🔴 **無論開或關，紀錄照樣寫下來**——這只是顯示與統計的過濾，隨時關掉，歷史就全部回來。
+排除的依據是**錢包種類**而不是分類：儲物櫃的錢會以三種分類進到紀錄裡
+（觀察到增加＝`FreeCompanyChestDeposit`、別的插件回報＝`SubmarineReturn`、減少沒有規則＝`Misc`），
+只擋分類會漏掉其中兩種。
 
-## Build
+## 指令
 
-```
-dotnet build -c Release
-```
+- `/gildelta`（別名 `/gd`）：開關儀表板
+- `/gildelta config`：開關設定視窗
+- `/gildelta wallets`：開啟儀表板的「餘額明細」分頁
 
-Output:
-- `bin/Release/GilDelta/GilDelta.dll` — loadable plugin DLL.
-- `bin/Release/GilDelta/latest.zip` — distribution archive (DalamudPackager).
+## 設定
 
-The Dalamud SDK uses your local Dalamud install at `%AppData%\XIVLauncher\addon\Hooks\dev\` for reference assemblies; no separate setup required.
+`/gildelta config` 裡有四個分頁：
 
-## Install (dev)
+- **一般**：語言、主題、統計排除公會儲物櫃。
+- **小工具**：顯示小工具、密度、過場動畫時隱藏、副本中隱藏、鎖定／重設小工具位置、小工具顯示整個帳號合計。
+- **儀表板**：預設分頁。
+- **資料**：保留天數（0＝永久保留；超過天數的舊紀錄會在啟動時與每天各清除一次，刪掉就救不回來）、
+  視窗判定時間（「剛才開過這個視窗」往回算多久）、辨識角色間轉帳與轉帳配對時間窗。
 
-Point Dalamud's *Dev Plugin Locations* at `bin/Release/GilDelta/GilDelta.dll`.
+## 台服版的修改
 
-## Release process (maintainer)
+- 介面繁體中文化（設定視窗、小工具、儀表板全部翻譯；新增的介面只有英文與繁中）。
+- 金幣紀錄改成每個角色一份，儀表板加角色選單與整個帳號合計。
+- 新增「每日結算」「餘額明細」分頁，以及點開數字看組成明細。
+- 時間軸每一筆可單獨排除；可統計排除公會儲物櫃。
+- 新增分類：郵件收款、郵件寄出、角色間轉帳；開著僱員出售清單時賣給商店的收入記為「NPC出售」。
+- 新增 `GilDelta.Hint` IPC 端點，讓別的插件直接標記金幣變動的分類。
+- 修正多條分類規則的誤判（公會儲物櫃讀不到時被記成巨額存入、剛關掉視窗就收發信件被記成購物或傳送等）。
+- 保留天數、過場動畫時隱藏、副本中隱藏等設定真的生效。
+- 多處降低記憶體用量。
 
-1. Bump `<Version>` in `GilDelta.csproj` and `Changelog` in `GilDelta.json`.
-2. Commit and push to `main`.
-3. Create a GitHub Release tagged `vX.Y.Z`. **No need to attach a binary** — the `Release` GHA workflow builds on `windows-latest` and uploads `latest.zip` automatically.
-4. Update the matching `AssemblyVersion` / `Changelog` entry in [`yagi2/dalamud-plugins/repo.json`](https://github.com/yagi2/dalamud-plugins) and push to `main`.
-
-Once both pushes land, Dalamud picks up the new version on its next plugin-list refresh.
-
-## License
-
-MIT.
+原作者：[yagi2](https://github.com/yagi2)（MIT 授權）

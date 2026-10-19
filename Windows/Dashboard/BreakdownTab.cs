@@ -11,19 +11,23 @@ public sealed class BreakdownTab : IDashboardTab
     public DashboardTab Identity => DashboardTab.Breakdown;
     public string Title => Strings.TabBreakdown;
 
-    private static readonly string[] Periods = { "Today", "7 days", "30 days", "All" };
+    private static string[] Periods => new[]
+    {
+        Strings.PeriodToday, Strings.Period7Days, Strings.Period30Days, Strings.PeriodAll,
+    };
     private int _periodIndex = 1;
 
     public void Draw(DashboardContext ctx)
     {
+        var periods = Periods;
         ImGui.SetNextItemWidth(120);
-        ImGui.Combo("##period", ref _periodIndex, Periods, Periods.Length);
+        ImGui.Combo("##period", ref _periodIndex, periods, periods.Length);
 
         var (from, to) = PeriodWindow(ctx.Now, _periodIndex);
         var grouped = ctx.NetByCategory(from, to);
         if (grouped.Count == 0)
         {
-            ImGui.TextDisabled("(no events in this period)");
+            ImGui.TextDisabled(Strings.NoEventsInPeriod);
             return;
         }
 
@@ -37,13 +41,36 @@ public sealed class BreakdownTab : IDashboardTab
             ImGui.TableSetupColumn("bar",      ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("amount",   ImGuiTableColumnFlags.WidthFixed, 130);
 
-            foreach (var kv in ordered)
+            for (var i = 0; i < ordered.Count; i++)
             {
+                var kv = ordered[i];
+                var label = EventTable.CategoryLabel(kv.Key);
+
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.PushStyleColor(ImGuiCol.Text, ctx.Theme.TextPrimary);
-                ImGui.TextUnformatted(CategoryLabel(kv.Key));
+                // The label doubles as the row's hit area, so a click anywhere on the row
+                // opens the records behind it. SetItemAllowOverlap keeps the spanning
+                // selectable from swallowing hover for the rest of the row.
+                var pressed = ImGui.Selectable(
+                    $"{label}##gdcat{i}", false, ImGuiSelectableFlags.SpanAllColumns);
                 ImGui.PopStyleColor();
+                ImGui.SetItemAllowOverlap();
+
+                if (ctx.ShowDetail is not null && ImGui.IsItemHovered())
+                {
+                    // "There is something to click here" has to be visible without clicking.
+                    ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                    ImGui.SetTooltip(Strings.DetailOpenHint);
+                }
+
+                // 🔴 The same (from, to) the figure was computed from, and both bounds are
+                // inclusive there - see NetByCategory. Rebuilding the window here, or
+                // making it half-open, would drop a record that landed on the boundary and
+                // the detail would stop adding up to the number above it.
+                if (pressed && ctx.ShowDetail is { } showDetail)
+                    showDetail(DetailQuery.ForRange(
+                        $"{label} - {periods[_periodIndex]}", from, to, kv.Key, kv.Value));
 
                 ImGui.TableNextColumn();
                 var ratio = max == 0 ? 0f : (float)Math.Abs(kv.Value) / max;
@@ -76,18 +103,4 @@ public sealed class BreakdownTab : IDashboardTab
             _ => (DateTimeOffset.MinValue, to),
         };
     }
-
-    private static string CategoryLabel(GilEventCategory c) => c switch
-    {
-        GilEventCategory.SubmarineReturn  => Strings.CategorySubmarineReturn,
-        GilEventCategory.RetainerSale     => Strings.CategoryRetainerSale,
-        GilEventCategory.RetainerWithdraw => Strings.CategoryRetainerWithdraw,
-        GilEventCategory.RetainerDeposit  => Strings.CategoryRetainerDeposit,
-        GilEventCategory.NpcShopBuy       => Strings.CategoryNpcShopBuy,
-        GilEventCategory.NpcShopSell      => Strings.CategoryNpcShopSell,
-        GilEventCategory.MarketBoardBuy   => Strings.CategoryMarketBoardBuy,
-        GilEventCategory.Repair           => Strings.CategoryRepair,
-        GilEventCategory.Teleport         => Strings.CategoryTeleport,
-        _                                 => Strings.CategoryMisc,
-    };
 }
