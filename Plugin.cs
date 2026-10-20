@@ -125,6 +125,7 @@ public sealed partial class Plugin : IDalamudPlugin
     private readonly System.Collections.Concurrent.ConcurrentQueue<GilEvent> _toggleRequests = new();
 
     private readonly List<Wallet.WalletDiff> _recentDiffs = new();
+    private readonly DiffLogSummary _diffSummary = new(TimeSpan.FromMinutes(1));
     private readonly AddonStateTracker _addonState = new();
 
     /// <summary>The addon sample of the current tick. Reused; framework thread only.</summary>
@@ -327,6 +328,7 @@ public sealed partial class Plugin : IDalamudPlugin
         Service.PluginInterface.UiBuilder.OpenMainUi   -= OnOpenMainUi;
         _windowSystem.RemoveAllWindows();
         Service.PluginInterface.SavePluginConfig(_config);
+        LogDiffSummary(_diffSummary.Take(DateTimeOffset.Now));
 
         // Final state goes out on this thread: a queued background write is not
         // guaranteed to run before the plugin is unloaded.

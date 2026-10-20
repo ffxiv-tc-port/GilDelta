@@ -107,6 +107,12 @@ public sealed partial class Plugin
         {
             Service.Log.Warning(e, "GilDelta: writing the daily settlements failed");
         }
+
+        if (_diffSummary.HasPending)
+        {
+            var now = DateTimeOffset.Now;
+            if (_diffSummary.IsDue(now)) LogDiffSummary(_diffSummary.Take(now));
+        }
     }
 
     /// <summary>

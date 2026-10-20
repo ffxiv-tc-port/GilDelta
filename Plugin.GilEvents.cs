@@ -37,6 +37,7 @@ public sealed partial class Plugin
             Service.Log.Verbose($"GilDelta: logout type={type} code={code}");
         else
             Service.Log.Information($"GilDelta: logout type={type} code={code}");
+        LogDiffSummary(_diffSummary.Take(DateTimeOffset.Now));
         PersistSnapshots();
 
         // Logging out is the most likely moment for the game to be closed altogether,
@@ -92,11 +93,12 @@ public sealed partial class Plugin
         // Diagnostic breadcrumb so misclassifications can be debugged from /xllog.
         // hintsLeft is what tells a "my hints never land" report apart from a
         // "nobody is sending hints" one: 0 before and after means nothing arrived.
-        // Deliberately every change at Information: offline session reports sum gil from these lines.
-        Service.Log.Information(
+        // Per change at Debug; the Information-level gil total is DiffLogSummary's line.
+        Service.Log.Debug(
             "Diff {Kind}({Id}) {Delta:+#,0;-#,0;0} -> {Cat}; cid={Cid}; recentAddons=[{Addons}]; hintsLeft={Hints}",
             diff.Id.Kind, diff.Id.Identifier, diff.Delta, ev.Category, owner,
             string.Join(",", openAddons), _hints.ActiveCount);
+        LogDiffSummary(_diffSummary.Add(owner, ev.Category, diff.Delta, diff.At));
 
         try
         {
@@ -121,6 +123,11 @@ public sealed partial class Plugin
         {
             Service.Log.Warning(e, "EventStore.Append failed");
         }
+    }
+
+    private static void LogDiffSummary(string? line)
+    {
+        if (line is not null) Service.Log.Information("{Summary:l}", line);
     }
 
     /// <summary>
