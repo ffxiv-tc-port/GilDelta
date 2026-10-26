@@ -94,3 +94,4 @@ jobs:
             GilDelta.zip
             bin/Release/GilDelta/GilDelta.json
           generate_release_notes: true
+# workflow re-registration trigger 2026-10-26T17:58:41Z
