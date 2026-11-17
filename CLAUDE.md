@@ -3,7 +3,7 @@
 > ## 🔴 這個分支是台服移植版（`tc-7.20`）
 >
 > 下面整份文件是**上游 `main`（API 15 / .NET 10）**留下的筆記。本分支已降到
-> **Dalamud API 13 / .NET 9（`Dalamud.NET.Sdk/13.0.0`）**，釘 `dalamud-pin-v13.0.0.16`。
+> **Dalamud API 13 / .NET 9（`Dalamud.NET.Sdk/13.0.0`）**，CI 釘 `dalamud-pin-v13.0.0.17`（DLL 檔案版本仍是 13.0.0.16）。
 > 移植時**沒有改動任何 C# 原始碼** —— 這顆 pin 已經有 `IPlayerState.ContentId`、
 > `Dalamud.Bindings.ImGui`、非泛型的 `IDalamudPluginInterface.Inject(object, …)`、
 > `PlotLines(ReadOnlySpan<float>, …)` 與 `IClientState.Logout(int, int)`，
@@ -11,7 +11,7 @@
 >
 > 改掉的只有專案檔層面：
 > - `GilDelta.csproj` → SDK 13；版號改成艦隊慣例 `7.20.0.<BuildNumber>`（`BuildNumber.txt` 自動遞增）。
-> - `tests/GilDelta.Tests` → `net9.0-windows7.0`（移植當下 60 個測試全過；本分支目前 314 個）。
+> - `tests/GilDelta.Tests` → `net9.0-windows7.0`（移植當下 60 個測試全過；本分支 2026-11 約 440 個，以 `dotnet test` 為準）。
 > - `GilDelta.json` → `RepoUrl` 指向本 fork；移除 `IconUrl`（feed 端 `mirror_releases.py` 會改寫成
 >   `DalamudPluginsTC/icons/GilDelta.png`）；`Changelog` 清空。
 > - `.github/workflows/` → 換成艦隊的 `release.yml`（workflow_dispatch）＋ `build-check.yml`。
@@ -361,7 +361,7 @@ dotnet build -c Release
 dotnet test
 ```
 
-xUnit project at `tests/GilDelta.Tests/`. Pure-logic only — no Dalamud references. 🔴 That is a hard runtime constraint, not a style rule: a test that touches any Dalamud type dies with `FileNotFoundException: Could not load file or assembly 'Dalamud, Version=13.0.0.16'`. `Configuration` counts, because it implements `IPluginConfiguration` - so a helper that needs testing takes its own plain struct instead of the config object (see `WidgetHideSettings`). ImGui rendering is verified in-game, not by tests. Current count: 299 tests covering Wallet types, Inferrer + every rule, RuleChain integration, EventStore (append/load/reclassify), EventLog, WidgetContext, BalanceRows, WidgetVisibility, DashboardContext, DailySummary, DailyLedger, WalletExclusion, ChartScale.
+xUnit project at `tests/GilDelta.Tests/`. Pure-logic only — no Dalamud references. 🔴 That is a hard runtime constraint, not a style rule: a test that touches any Dalamud type dies with `FileNotFoundException: Could not load file or assembly 'Dalamud, Version=13.0.0.16'`. `Configuration` counts, because it implements `IPluginConfiguration` - so a helper that needs testing takes its own plain struct instead of the config object (see `WidgetHideSettings`). ImGui rendering is verified in-game, not by tests. Current count (tc-7.20, 2026-11): 436 test cases - run `dotnet test` for the live number - covering Wallet types, Inferrer + every rule, RuleChain integration, EventStore (append/load/reclassify), EventLog, WidgetContext, BalanceRows, WidgetVisibility, DashboardContext, DailySummary, DailyLedger, WalletExclusion, ChartScale.
 
 ## Distribution
 

@@ -77,7 +77,7 @@ public sealed partial class Plugin
         var owner = _activeContentId;
         if (owner == 0) return;  // nothing to attribute this to; do not invent an owner
 
-        // Use the rolling 2-second window of recently-seen addons so the rules
+        // Use the rolling AddonRecencySeconds window (default 10 s) of recently-seen addons so the rules
         // still match even when the Shop / Teleport / Repair addon was closed
         // by the time WalletWatcher detected the diff on the next tick.
         var lastSeen = _addonState.LastSeenWithin(AddonRecencyWindow);

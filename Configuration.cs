@@ -9,7 +9,7 @@ namespace GilDelta;
 
 public sealed class Configuration : IPluginConfiguration
 {
-    // Bumped when the schema changes; Plugin.LoadConfig handles migration.
+    // Required by IPluginConfiguration. Nothing reads it: there is no config migration yet.
     public int Version { get; set; } = 0;
 
     // -1 = follow the FFXIV client language; 0..6 = explicit Localization.Language enum value.
