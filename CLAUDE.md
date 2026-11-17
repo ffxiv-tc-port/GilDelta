@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> ## 🔴 這個分支是台服移植版（`tc-7.20`）
+> ## 🔴 這個分支是台服移植版（`tc-7.30`）
 >
 > 下面整份文件是**上游 `main`（API 15 / .NET 10）**留下的筆記。本分支已降到
 > **Dalamud API 13 / .NET 9（`Dalamud.NET.Sdk/13.0.0`）**，CI 釘 `dalamud-pin-v13.0.0.17`（DLL 檔案版本仍是 13.0.0.16）。
@@ -29,7 +29,7 @@ Notes for future agents working on GilDelta.
 
 ## Project at a glance
 
-- **Type:** Dalamud plugin (FFXIV). Upstream `main`: API 15 / `Dalamud.NET.Sdk/15.0.0`. **This `tc-7.20` branch: API 13 / `Dalamud.NET.Sdk/13.0.0` / .NET 9.**
+- **Type:** Dalamud plugin (FFXIV). Upstream `main`: API 15 / `Dalamud.NET.Sdk/15.0.0`. **This `tc-7.30` branch: API 13 / `Dalamud.NET.Sdk/13.0.0` / .NET 9.**
 - **Goal:** read-only gil tracker — observe gil changes across self / retainers / FC chest, classify each into a category (`SubmarineReturn`, `RetainerSale`, `NpcShopBuy`, etc.), persist as JSONL, surface through a configurable always-on widget plus a five-tab dashboard.
 - **Read-only invariant.** No game-state writes anywhere. WalletReader only reads from FFXIVClientStructs; if a future task needs to call any "Execute"/"Send"/"Set" API, stop and confirm scope with the user.
 
