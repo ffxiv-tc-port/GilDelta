@@ -50,6 +50,12 @@ public sealed partial class Plugin : IDalamudPlugin
     private static readonly TimeSpan LedgerPersistInterval = TimeSpan.FromSeconds(20);
 
     /// <summary>
+    /// How often the configuration is compared with what was last saved (see
+    /// <see cref="SaveDebounce"/>). Dispose still saves unconditionally.
+    /// </summary>
+    private static readonly TimeSpan ConfigCheckInterval = TimeSpan.FromSeconds(2);
+
+    /// <summary>
     /// How many ticks to keep asking the game for a character's display name and home
     /// world before settling for whatever came back. Without a bound, a home world
     /// that never resolves would allocate a name string and a sheet lookup every frame.
@@ -59,6 +65,8 @@ public sealed partial class Plugin : IDalamudPlugin
     private const string LoginReadyTemplate = "GilDelta: 角色 {Label} 登入，帳本就緒（{Chest}）{Note}";
 
     private readonly Configuration _config;
+    private readonly SaveDebounce _configSave = new();
+    private DateTimeOffset _lastConfigCheck = DateTimeOffset.MinValue;
     private readonly EventStoreSet _stores;
     private readonly EventLog _log = new();
     private readonly Inferrer _inferrer;

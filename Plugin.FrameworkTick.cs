@@ -108,6 +108,15 @@ public sealed partial class Plugin
             Service.Log.Warning(e, "GilDelta: writing the daily settlements failed");
         }
 
+        try
+        {
+            PersistConfigIfChanged(DateTimeOffset.Now);
+        }
+        catch (Exception e)
+        {
+            Service.Log.Warning(e, "GilDelta: saving the configuration failed");
+        }
+
         if (_diffSummary.HasPending)
         {
             var now = DateTimeOffset.Now;

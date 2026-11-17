@@ -15,11 +15,28 @@ using GilDelta.Wallet;
 using GilDelta.Windows;
 using GilDelta.Windows.Dashboard;
 using GilDelta.Windows.Widget;
+using Newtonsoft.Json;
 
 namespace GilDelta;
 
 public sealed partial class Plugin
 {
+    // --- Configuration ------------------------------------------------------
+
+    /// <summary>
+    /// Saves the configuration a few seconds after it last changed, so a crash no longer
+    /// loses every setting changed this session. Framework thread only: every writer of
+    /// <see cref="_config"/> runs on it too (draw and framework update share the thread).
+    /// </summary>
+    private void PersistConfigIfChanged(DateTimeOffset now)
+    {
+        if (now - _lastConfigCheck < ConfigCheckInterval) return;
+        _lastConfigCheck = now;
+
+        if (_configSave.ShouldSave(JsonConvert.SerializeObject(_config)))
+            Service.PluginInterface.SavePluginConfig(_config);
+    }
+
     // --- Startup ------------------------------------------------------------
 
     private void LoadPersistedState(string configDir)
