@@ -86,6 +86,22 @@ public class GilHintStoreTests
         Assert.Equal(2, log.Count);
     }
 
+    // The exact strings the fleet's GilDelta.Hint consumers send. Literals on purpose:
+    // renaming one of these enum members must fail here, because the consumer would
+    // otherwise be dropped with nothing but a log line (Submit returns false).
+    [Theory]
+    [InlineData("RetainerWithdraw")]   // AutoRetainer
+    [InlineData("RetainerDeposit")]    // AutoRetainer
+    [InlineData("SubmarineReturn")]    // AutoRetainer
+    [InlineData("Teleport")]           // Lifestream
+    [InlineData("MarketBoardBuy")]     // Marketbuddy
+    [InlineData("NpcShopBuy")]         // TCToolbox
+    public void Every_category_a_fleet_consumer_sends_is_accepted(string category)
+    {
+        var store = new GilHintStore(new FakeClock().Read);
+        Assert.True(store.Submit(category, "Consumer:x", 10_000));
+    }
+
     [Fact]
     public void Category_names_are_matched_case_insensitively()
     {
