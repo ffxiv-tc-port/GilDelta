@@ -279,7 +279,7 @@ public static class Strings
         "How long a window counts as \"was just open\" when working out what a gil change was. Longer helps when other plugins open and close windows faster than they can be seen; too long starts crediting the wrong window.",
         "How long a window counts as \"was just open\" when working out what a gil change was. Longer helps when other plugins open and close windows faster than they can be seen; too long starts crediting the wrong window.",
         "How long a window counts as \"was just open\" when working out what a gil change was. Longer helps when other plugins open and close windows faster than they can be seen; too long starts crediting the wrong window.",
-        "判斷金幣變動是什麼時，「剛才開過這個視窗」要往回算多久。調長對「其他插件開關視窗比看得到的還快」有幫助，調太長則會開始算到不相干的視窗上。"
+        "判斷 Gil 變動是什麼時，「剛才開過這個視窗」要往回算多久。調長對「其他插件開關視窗比看得到的還快」有幫助，調太長則會開始算到不相干的視窗上。"
     );
     public static string RetentionDaysWarning => T(
         "Deletion is on: records past the window go at startup and once a day.",

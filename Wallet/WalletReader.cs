@@ -168,7 +168,7 @@ public sealed class WalletReader
         null => "尚未讀到公會儲物櫃",
         ChestFigureState.Readable => "公會儲物櫃可讀",
         ChestFigureState.ContainerNotLoaded =>
-            "公會儲物櫃讀不到：金幣容器未載入",
+            "公會儲物櫃讀不到：Gil 容器未載入",
         _ => "公會儲物櫃讀不到：伺服器尚未送出餘額",
     };
 
