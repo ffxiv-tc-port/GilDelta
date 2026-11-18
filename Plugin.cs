@@ -66,6 +66,7 @@ public sealed partial class Plugin : IDalamudPlugin
 
     private readonly Configuration _config;
     private readonly SaveDebounce _configSave = new();
+    private readonly ReusedJsonText _configText = new();
     private DateTimeOffset _lastConfigCheck = DateTimeOffset.MinValue;
     private readonly EventStoreSet _stores;
     private readonly EventLog _log = new();

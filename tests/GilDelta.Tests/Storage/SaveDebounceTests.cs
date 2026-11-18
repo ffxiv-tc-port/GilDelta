@@ -64,4 +64,31 @@ public class SaveDebounceTests
         Assert.False(d.ShouldSave("a"));
         Assert.True(d.ShouldSave("a"));
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(20261118)]
+    public void BuilderOverloadDecidesExactlyLikeTheStringOverload(int seed)
+    {
+        // Few distinct values, so "same as saved", "same as pending" and "new" all occur often.
+        var rng = new Random(seed);
+        var byString = new SaveDebounce();
+        var byBuilder = new SaveDebounce();
+        var buffer = new System.Text.StringBuilder();
+        var saves = 0;
+
+        for (var i = 0; i < 5000; i++)
+        {
+            var value = rng.Next(3) == 0 ? string.Empty : "v" + rng.Next(4);
+            if (rng.Next(4) == 0) value = "v" + rng.Next(4) + "-" + rng.Next(2);
+            buffer.Clear().Append(value);
+
+            var expected = byString.ShouldSave(value);
+            Assert.Equal(expected, byBuilder.ShouldSave(buffer));
+            if (expected) saves++;
+        }
+
+        Assert.True(saves > 100);
+    }
 }

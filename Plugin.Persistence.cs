@@ -15,7 +15,6 @@ using GilDelta.Wallet;
 using GilDelta.Windows;
 using GilDelta.Windows.Dashboard;
 using GilDelta.Windows.Widget;
-using Newtonsoft.Json;
 
 namespace GilDelta;
 
@@ -33,7 +32,7 @@ public sealed partial class Plugin
         if (now - _lastConfigCheck < ConfigCheckInterval) return;
         _lastConfigCheck = now;
 
-        if (_configSave.ShouldSave(JsonConvert.SerializeObject(_config)))
+        if (_configSave.ShouldSave(_configText.Write(_config)))
             Service.PluginInterface.SavePluginConfig(_config);
     }
 

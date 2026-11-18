@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace GilDelta.Storage;
 
 /// <summary>
@@ -30,6 +33,30 @@ public sealed class SaveDebounce
         // Counted as saved before the caller writes: a failed write is retried on the
         // next change, not on every sample.
         _saved = current;
+        _pending = null;
+        return true;
+    }
+
+    /// <summary>
+    /// Same decisions as <see cref="ShouldSave(string)"/> with <c>current.ToString()</c>, but a
+    /// sample equal to what is already saved or pending allocates nothing.
+    /// </summary>
+    public bool ShouldSave(StringBuilder current)
+    {
+        if (_saved is null || current.Equals(_saved.AsSpan()))
+        {
+            _saved ??= current.ToString();
+            _pending = null;
+            return false;
+        }
+
+        if (_pending is null || !current.Equals(_pending.AsSpan()))
+        {
+            _pending = current.ToString();
+            return false;
+        }
+
+        _saved = _pending;
         _pending = null;
         return true;
     }
