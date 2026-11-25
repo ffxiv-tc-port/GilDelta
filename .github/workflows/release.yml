@@ -1,5 +1,5 @@
 # 台服 (TC) 發版（GilDelta）。由 DalamudPluginsTC 的 release_plugin.py 以
-# workflow_dispatch 觸發，Dalamud 釘在 API13 (dalamud-pin-v13.0.0.16)。
+# workflow_dispatch 觸發，Dalamud 釘在 API13（版本以 $pinUrl 為準）。
 #
 # 🔴 dispatch-only 的 workflow 在新 repo 不會自動註冊 —— `gh workflow list` 看不到它，
 #    release_plugin.py 的 dispatch 會回 404 workflow not found。唯一的註冊方法是
@@ -73,7 +73,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Add-Type -AssemblyName System.IO.Compression
           $n = "$env:LEAK_GUARD_NEEDLE".Trim().ToLowerInvariant()
-          if ($n.Length -lt 4 -or $n -cnotmatch '^[a-z0-9_.-]+$') { throw "secret LEAK_GUARD_NEEDLE is empty or malformed (length $($n.Length)); refusing to upload" }
+          if ($n.Length -lt 4 -or $n -cnotmatch '^[a-z0-9_.-]+$') { throw "secret LEAK_GUARD_NEEDLE is empty or malformed; refusing to upload" }
           $L = [Text.Encoding]::Latin1
           $cases = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
           [void]$cases.Add($n); [void]$cases.Add($n.Substring(0, 1).ToUpperInvariant() + $n.Substring(1)); [void]$cases.Add($n.ToUpperInvariant())

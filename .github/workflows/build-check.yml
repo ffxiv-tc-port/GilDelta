@@ -1,10 +1,16 @@
-# 台服 (TC) 建置檢查（GilDelta）。Dalamud 釘在 API13 (dalamud-pin-v13.0.0.16)。
+# 台服 (TC) 建置檢查（GilDelta）。Dalamud 釘在 API13（版本以 $pinUrl 為準）。
 # ⚠️ 直接建 GilDelta.csproj（不是 .sln）—— csproj 直建的 Platform 是 AnyCPU，
 #    輸出落在 bin/Release/；GilDelta.sln 會把 Platform 逼成 x64，兩者靠 csproj 裡
 #    顯式的 <OutputPath>bin\$(Configuration)\</OutputPath> 才會落在同一個地方。
 name: Build Check
 
 on:
+  push:
+    branches: [tc-7.30]
+    paths-ignore:
+      - '**.md'
+      - '**/LICENSE*'
+      - 'LICENSE*'
   workflow_dispatch:
 permissions:
   contents: read
