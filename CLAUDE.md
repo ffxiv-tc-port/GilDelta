@@ -3,14 +3,14 @@
 > ## 🔴 這個分支是台服移植版（`tc-7.30`）
 >
 > 下面整份文件是**上游 `main`（API 15 / .NET 10）**留下的筆記。本分支已降到
-> **Dalamud API 13 / .NET 9（`Dalamud.NET.Sdk/13.0.0`）**，CI 釘 `dalamud-pin-v13.0.0.17`（DLL 檔案版本仍是 13.0.0.16）。
+> **Dalamud API 13 / .NET 9（`Dalamud.NET.Sdk/13.0.0`）**，CI 釘 `dalamud-pin-v7.30.0.1`（以 workflow 的 `$pinUrl` 為準；DLL 檔案版本仍是 13.0.0.16）。
 > 移植時**沒有改動任何 C# 原始碼** —— 這顆 pin 已經有 `IPlayerState.ContentId`、
 > `Dalamud.Bindings.ImGui`、非泛型的 `IDalamudPluginInterface.Inject(object, …)`、
 > `PlotLines(ReadOnlySpan<float>, …)` 與 `IClientState.Logout(int, int)`，
 > 所以下面「SDK 15 gotchas」第 1 / 2 / 3 / 4 / 9 條在本分支**同樣成立**。
 >
 > 改掉的只有專案檔層面：
-> - `GilDelta.csproj` → SDK 13；版號改成艦隊慣例 `7.20.0.<BuildNumber>`（`BuildNumber.txt` 自動遞增）。
+> - `GilDelta.csproj` → SDK 13；版號改成艦隊慣例：本機建置是 `7.20.0.<BuildNumber>`（csproj 的 `VersionPrefix`，`BuildNumber.txt` 自動遞增），發版時由 tag 覆蓋，現行紀元 `v7.30.x.y`。
 > - `tests/GilDelta.Tests` → `net9.0-windows7.0`（移植當下 60 個測試全過；本分支 2026-11 約 440 個，以 `dotnet test` 為準）。
 > - `GilDelta.json` → `RepoUrl` 指向本 fork；移除 `IconUrl`（feed 端 `mirror_releases.py` 會改寫成
 >   `DalamudPluginsTC/icons/GilDelta.png`）；`Changelog` 清空。
